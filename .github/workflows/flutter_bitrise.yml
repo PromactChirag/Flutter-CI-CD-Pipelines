@@ -1,0 +1,33 @@
+---
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: other
+workflows:
+  primary:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - certificate-and-profile-installer@1: {}
+    - flutter-installer@0: {}
+    - cache-pull@2: {}
+    - change-android-versioncode-and-versionname@1:
+        inputs:
+        - build_gradle_path: "$BITRISE_SOURCE_DIR/android/app/build.gradle"
+        - new_version_name: '"1.0.$BITRISE_BUILD_NUMBER"'
+    - flutter-build@0: {}
+    - sign-apk@1: {}
+    - testfairy-deploy-android@1:
+        inputs:
+        - api_key: "$TEST_FAIRY_TOKEN"
+    - deploy-to-bitrise-io@2: {}
+    - cache-push@2: {}
+meta:
+  bitrise.io:
+    stack: osx-xcode-14.3.x-ventura
+    machine_type_id: g2-m1.4core
+app:
+  envs:
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION: "."
